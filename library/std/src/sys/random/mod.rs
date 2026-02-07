@@ -35,7 +35,7 @@ cfg_if::cfg_if! {
     } else if #[cfg(target_os = "hermit")] {
         mod hermit;
         pub use hermit::fill_bytes;
-    } else if #[cfg(any(target_os = "horizon", target_os = "cygwin"))] {
+    } else if #[cfg(any(target_os = "horizon", target_os = "cygwin", target_os = "breenix"))] {
         // FIXME(horizon): add arc4random_buf to shim-3ds
         mod getrandom;
         pub use getrandom::fill_bytes;

@@ -28,7 +28,8 @@ pub fn anon_pipe() -> io::Result<(AnonPipe, AnonPipe)> {
             target_os = "netbsd",
             target_os = "openbsd",
             target_os = "cygwin",
-            target_os = "redox"
+            target_os = "redox",
+            target_os = "breenix"
         ))] {
             unsafe {
                 cvt(libc::pipe2(fds.as_mut_ptr(), libc::O_CLOEXEC))?;

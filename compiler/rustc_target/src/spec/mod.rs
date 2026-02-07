@@ -1871,6 +1871,8 @@ supported_targets! {
     ("i586-unknown-redox", i586_unknown_redox),
     ("x86_64-unknown-redox", x86_64_unknown_redox),
 
+    ("x86_64-unknown-breenix", x86_64_unknown_breenix),
+
     ("i386-apple-ios", i386_apple_ios),
     ("x86_64-apple-ios", x86_64_apple_ios),
     ("aarch64-apple-ios", aarch64_apple_ios),

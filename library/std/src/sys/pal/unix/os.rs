@@ -34,6 +34,7 @@ unsafe extern "C" {
             target_os = "fuchsia",
             target_os = "l4re",
             target_os = "hurd",
+            target_os = "breenix",
         ),
         link_name = "__errno_location"
     )]
