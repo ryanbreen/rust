@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::hash::{BuildHasher, Hash, Hasher};
 use std::marker::PhantomData;
 use std::mem;
@@ -494,6 +495,16 @@ where
 impl<'a, T, CTX> HashStable<CTX> for &'a T
 where
     T: HashStable<CTX> + ?Sized,
+{
+    #[inline]
+    fn hash_stable(&self, ctx: &mut CTX, hasher: &mut StableHasher) {
+        (**self).hash_stable(ctx, hasher);
+    }
+}
+
+impl<'a, T, CTX> HashStable<CTX> for Cow<'a, T>
+where
+    T: HashStable<CTX> + ?Sized + ToOwned,
 {
     #[inline]
     fn hash_stable(&self, ctx: &mut CTX, hasher: &mut StableHasher) {

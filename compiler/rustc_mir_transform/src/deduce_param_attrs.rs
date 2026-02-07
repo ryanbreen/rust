@@ -189,7 +189,7 @@ pub(super) fn deduced_param_attrs<'tcx>(
     }
 
     // Don't deduce any attributes for functions that have no MIR.
-    if !tcx.is_mir_available(def_id) {
+    if !tcx.is_mir_for_hir_available(def_id) {
         return &[];
     }
 

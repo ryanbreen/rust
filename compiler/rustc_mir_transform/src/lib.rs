@@ -35,6 +35,7 @@ use tracing::debug;
 #[macro_use]
 mod pass_manager;
 
+use std::borrow::Cow;
 use std::sync::LazyLock;
 
 use pass_manager::{self as pm, Lint, MirLint, MirPass, WithMinOptLevel};
@@ -219,6 +220,7 @@ pub fn provide(providers: &mut Providers) {
     shim::provide(&mut providers.queries);
     cross_crate_inline::provide(&mut providers.queries);
     providers.queries = query::Providers {
+        mir_keys_for_hir,
         mir_keys,
         mir_built,
         mir_const_qualif,
@@ -228,6 +230,7 @@ pub fn provide(providers: &mut Providers) {
         mir_coroutine_witnesses: coroutine::mir_coroutine_witnesses,
         optimized_mir,
         check_liveness: liveness::check_liveness,
+        is_mir_for_hir_available,
         is_mir_available,
         mir_callgraph_cyclic: inline::cycle::mir_callgraph_cyclic,
         mir_inliner_callees: inline::cycle::mir_inliner_callees,
@@ -316,29 +319,17 @@ fn take_array<T, const N: usize>(b: &mut Box<[T]>) -> Result<[T; N], Box<[T]>> {
     Ok(*b)
 }
 
-fn is_mir_available(tcx: TyCtxt<'_>, def_id: LocalDefId) -> bool {
-    tcx.mir_keys(()).contains(&def_id)
+fn is_mir_for_hir_available(tcx: TyCtxt<'_>, def_id: LocalDefId) -> bool {
+    tcx.mir_keys_for_hir(()).contains(&def_id)
 }
 
-/// Finds the full set of `DefId`s within the current crate that have
-/// MIR associated with them.
-fn mir_keys(tcx: TyCtxt<'_>, (): ()) -> FxIndexSet<LocalDefId> {
+fn mir_keys_for_hir(tcx: TyCtxt<'_>, (): ()) -> FxIndexSet<LocalDefId> {
     // All body-owners have MIR associated with them.
     let mut set: FxIndexSet<_> = tcx.hir_body_owners().collect();
 
     // Remove the fake bodies for `global_asm!`, since they're not useful
     // to be emitted (`--emit=mir`) or encoded (in metadata).
     set.retain(|&def_id| !matches!(tcx.def_kind(def_id), DefKind::GlobalAsm));
-
-    // Coroutine-closures (e.g. async closures) have an additional by-move MIR
-    // body that isn't in the HIR.
-    for body_owner in tcx.hir_body_owners() {
-        if let DefKind::Closure = tcx.def_kind(body_owner)
-            && tcx.needs_coroutine_by_move_body_def_id(body_owner.to_def_id())
-        {
-            set.insert(tcx.coroutine_by_move_body_def_id(body_owner).expect_local());
-        }
-    }
 
     // tuple struct/variant constructors have MIR, but they don't have a BodyId,
     // so we need to build them separately.
@@ -349,6 +340,28 @@ fn mir_keys(tcx: TyCtxt<'_>, (): ()) -> FxIndexSet<LocalDefId> {
                     set.insert(ctor_def_id.expect_local());
                 }
             }
+        }
+    }
+
+    set
+}
+
+fn is_mir_available(tcx: TyCtxt<'_>, def_id: LocalDefId) -> bool {
+    tcx.mir_keys(()).contains(&def_id)
+}
+
+/// Finds the full set of `DefId`s within the current crate that have
+/// MIR associated with them.
+fn mir_keys(tcx: TyCtxt<'_>, (): ()) -> Cow<'_, FxIndexSet<LocalDefId>> {
+    let mut set = Cow::Borrowed(tcx.mir_keys_for_hir(()));
+
+    // Coroutine-closures (e.g. async closures) have an additional by-move MIR
+    // body that isn't in the HIR.
+    for body_owner in tcx.hir_body_owners() {
+        if let DefKind::Closure = tcx.def_kind(body_owner)
+            && tcx.needs_coroutine_by_move_body_def_id(body_owner.to_def_id())
+        {
+            set.to_mut().insert(tcx.coroutine_by_move_body_def_id(body_owner).expect_local());
         }
     }
 
