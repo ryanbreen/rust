@@ -37,6 +37,7 @@ const STAGE0_MISSING_TARGETS: &[&str] = &[
     "loongarch32-unknown-none",
     "loongarch32-unknown-none-softfloat",
     "x86_64-unknown-breenix",
+    "aarch64-unknown-breenix",
 ];
 
 /// Minimum version threshold for libstdc++ required when using prebuilt LLVM

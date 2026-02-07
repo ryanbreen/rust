@@ -41,6 +41,8 @@ mod platform {
     pub use crate::os::aix::*;
     #[cfg(target_os = "android")]
     pub use crate::os::android::*;
+    #[cfg(target_os = "breenix")]
+    pub use crate::os::breenix::*;
     #[cfg(target_os = "cygwin")]
     pub use crate::os::cygwin::*;
     #[cfg(target_vendor = "apple")]

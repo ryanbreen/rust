@@ -126,13 +126,14 @@ impl Thread {
         target_os = "freebsd",
         target_os = "dragonfly",
         target_os = "nuttx",
-        target_os = "cygwin"
+        target_os = "cygwin",
+        target_os = "breenix",
     ))]
     pub fn set_name(name: &CStr) {
         unsafe {
             cfg_if::cfg_if! {
-                if #[cfg(any(target_os = "linux", target_os = "cygwin"))] {
-                    // Linux and Cygwin limits the allowed length of the name.
+                if #[cfg(any(target_os = "linux", target_os = "cygwin", target_os = "breenix"))] {
+                    // Linux, Cygwin, and Breenix limit the allowed length of the name.
                     const TASK_COMM_LEN: usize = 16;
                     let name = truncate_cstr::<{ TASK_COMM_LEN }>(name);
                 } else {
@@ -325,6 +326,7 @@ impl Drop for Thread {
     target_os = "illumos",
     target_os = "vxworks",
     target_os = "cygwin",
+    target_os = "breenix",
     target_vendor = "apple",
 ))]
 fn truncate_cstr<const MAX_WITH_NUL: usize>(cstr: &CStr) -> [libc::c_char; MAX_WITH_NUL] {
