@@ -144,7 +144,13 @@ impl Command {
                         bytes
                     );
                     let errno = i32::from_be_bytes(errno.try_into().unwrap());
-                    assert!(p.wait().is_ok(), "wait() should either return Ok or panic");
+                    // SIGCHLD ignored or SA_NOCLDWAIT can reap the child before
+                    // this wait. The error pipe still reports the exec failure.
+                    let waited = p.wait();
+                    assert!(
+                        waited.is_ok() || waited.as_ref().err().and_then(Error::raw_os_error) == Some(libc::ECHILD),
+                        "wait() failed after an exec error: {waited:?}"
+                    );
                     return Err(Error::from_raw_os_error(errno));
                 }
                 Err(ref e) if e.is_interrupted() => {}
