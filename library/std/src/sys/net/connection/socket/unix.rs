@@ -75,6 +75,7 @@ impl Socket {
             cfg_if::cfg_if! {
                 if #[cfg(any(
                     target_os = "android",
+                    target_os = "breenix",
                     target_os = "dragonfly",
                     target_os = "freebsd",
                     target_os = "illumos",
@@ -123,6 +124,7 @@ impl Socket {
             cfg_if::cfg_if! {
                 if #[cfg(any(
                     target_os = "android",
+                    target_os = "breenix",
                     target_os = "dragonfly",
                     target_os = "freebsd",
                     target_os = "illumos",
@@ -253,6 +255,7 @@ impl Socket {
         cfg_if::cfg_if! {
             if #[cfg(any(
                 target_os = "android",
+                    target_os = "breenix",
                 target_os = "dragonfly",
                 target_os = "freebsd",
                 target_os = "illumos",
