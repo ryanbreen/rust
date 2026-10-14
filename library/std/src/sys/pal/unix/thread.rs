@@ -339,7 +339,24 @@ fn truncate_cstr<const MAX_WITH_NUL: usize>(cstr: &CStr) -> [libc::c_char; MAX_W
 
 pub fn available_parallelism() -> io::Result<NonZero<usize>> {
     cfg_if::cfg_if! {
-        if #[cfg(any(
+        if #[cfg(target_os = "breenix")] {
+            // Breenix reports a thread's allowed processors in a CPU mask.
+            // The C wrapper converts the kernel's byte count to a zero status
+            // and clears the unused words of the public cpu_set_t.
+            let mut set: libc::cpu_set_t = unsafe { mem::zeroed() };
+            if unsafe { libc::sched_getaffinity(0, size_of::<libc::cpu_set_t>(), &mut set) } == 0 {
+                if let Some(count) = NonZero::new(libc::CPU_COUNT(&set) as usize) {
+                    return Ok(count);
+                }
+            }
+            // Procfs-backed sysconf gives the online count when affinity cannot
+            // be queried. Breenix has no cgroup quotas to consult.
+            match unsafe { libc::sysconf(libc::_SC_NPROCESSORS_ONLN) } {
+                -1 => Err(io::Error::last_os_error()),
+                count if count > 0 => Ok(NonZero::new(count as usize).unwrap()),
+                _ => Err(io::Error::UNKNOWN_THREAD_COUNT),
+            }
+        } else if #[cfg(any(
             target_os = "android",
             target_os = "emscripten",
             target_os = "fuchsia",
