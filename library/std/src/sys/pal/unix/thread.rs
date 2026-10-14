@@ -345,7 +345,7 @@ pub fn available_parallelism() -> io::Result<NonZero<usize>> {
             // and clears the unused words of the public cpu_set_t.
             let mut set: libc::cpu_set_t = unsafe { mem::zeroed() };
             if unsafe { libc::sched_getaffinity(0, size_of::<libc::cpu_set_t>(), &mut set) } == 0 {
-                if let Some(count) = NonZero::new(libc::CPU_COUNT(&set) as usize) {
+                if let Some(count) = NonZero::new(unsafe { libc::CPU_COUNT(&set) } as usize) {
                     return Ok(count);
                 }
             }
