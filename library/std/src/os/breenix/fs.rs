@@ -77,6 +77,50 @@ pub trait MetadataExt {
     fn st_blocks(&self) -> u64;
 }
 
+// `as_raw_stat` reinterprets the libc crate's `stat` as `raw::stat`, so the build
+// fails if the two ever differ in size, alignment, or a field's offset or width.
+#[allow(deprecated)]
+const _: () = {
+    use crate::mem::{MaybeUninit, align_of, offset_of, size_of};
+
+    const fn width<T>(_: *const T) -> usize {
+        size_of::<T>()
+    }
+
+    let raw_stat = MaybeUninit::<raw::stat>::uninit();
+    let libc_stat = MaybeUninit::<libc::stat>::uninit();
+    assert!(size_of::<raw::stat>() == size_of::<libc::stat>());
+    assert!(align_of::<raw::stat>() == align_of::<libc::stat>());
+    macro_rules! same_field {
+        ($($field:ident),* $(,)?) => {$(
+            assert!(offset_of!(raw::stat, $field) == offset_of!(libc::stat, $field));
+            // SAFETY: only the field's address is taken; nothing is read.
+            assert!(unsafe {
+                width(&raw const (*raw_stat.as_ptr()).$field)
+                    == width(&raw const (*libc_stat.as_ptr()).$field)
+            });
+        )*};
+    }
+    same_field!(
+        st_dev,
+        st_ino,
+        st_mode,
+        st_nlink,
+        st_uid,
+        st_gid,
+        st_rdev,
+        st_size,
+        st_blksize,
+        st_blocks,
+        st_atime,
+        st_atime_nsec,
+        st_mtime,
+        st_mtime_nsec,
+        st_ctime,
+        st_ctime_nsec,
+    );
+};
+
 #[stable(feature = "metadata_ext", since = "1.1.0")]
 impl MetadataExt for Metadata {
     #[allow(deprecated)]
