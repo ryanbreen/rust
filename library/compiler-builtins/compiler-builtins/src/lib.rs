@@ -46,11 +46,30 @@ mod macros;
 
 pub mod float;
 pub mod int;
-pub mod math;
 pub mod mem;
 
-// `libm` expects its `support` module to be available in the crate root.
-use math::libm_math::support;
+macro_rules! items {
+    ($($item:item)*) => { $($item)* };
+}
+
+// Breenix's C library supplies the math functions, so no part of the libm crate's math is
+// built for it. They are left out as one macro invocation, which leaves no trace of them in
+// the crate's metadata; the integer and float helpers still use libm's `support` traits.
+#[cfg(not(target_os = "breenix"))]
+items! {
+    pub mod math;
+
+    // `libm` expects its `support` module to be available in the crate root.
+    use math::libm_math::support;
+}
+
+#[cfg(target_os = "breenix")]
+#[rustfmt::skip]
+#[allow(dead_code)]
+#[allow(unused_imports)]
+#[allow(clippy::all)]
+#[path = "../../libm/src/math/support/mod.rs"]
+mod support;
 
 #[cfg(target_arch = "arm")]
 pub mod arm;
