@@ -804,10 +804,11 @@ pub struct ArgsOs {
 /// (such as `*` and `?`). On Windows this is not done, and such arguments are
 /// passed as-is.
 ///
-/// On glibc Linux systems, arguments are retrieved by placing a function in `.init_array`.
-/// glibc passes `argc`, `argv`, and `envp` to functions in `.init_array`, as a non-standard
-/// extension. This allows `std::env::args` to work even in a `cdylib` or `staticlib`, as it
-/// does on macOS and Windows.
+// Breenix: this paragraph names another C library, so Breenix's std leaves it out.
+#[cfg_attr(not(target_os = "breenix"), doc = "On glibc Linux systems, arguments are retrieved by placing a function in `.init_array`.")]
+#[cfg_attr(not(target_os = "breenix"), doc = "glibc passes `argc`, `argv`, and `envp` to functions in `.init_array`, as a non-standard")]
+#[cfg_attr(not(target_os = "breenix"), doc = "extension. This allows `std::env::args` to work even in a `cdylib` or `staticlib`, as it")]
+#[cfg_attr(not(target_os = "breenix"), doc = "does on macOS and Windows.")]
 ///
 /// # Panics
 ///
@@ -841,10 +842,11 @@ pub fn args() -> Args {
 /// (such as `*` and `?`). On Windows this is not done, and such arguments are
 /// passed as-is.
 ///
-/// On glibc Linux systems, arguments are retrieved by placing a function in `.init_array`.
-/// glibc passes `argc`, `argv`, and `envp` to functions in `.init_array`, as a non-standard
-/// extension. This allows `std::env::args_os` to work even in a `cdylib` or `staticlib`, as it
-/// does on macOS and Windows.
+// Breenix: this paragraph names another C library, so Breenix's std leaves it out.
+#[cfg_attr(not(target_os = "breenix"), doc = "On glibc Linux systems, arguments are retrieved by placing a function in `.init_array`.")]
+#[cfg_attr(not(target_os = "breenix"), doc = "glibc passes `argc`, `argv`, and `envp` to functions in `.init_array`, as a non-standard")]
+#[cfg_attr(not(target_os = "breenix"), doc = "extension. This allows `std::env::args_os` to work even in a `cdylib` or `staticlib`, as it")]
+#[cfg_attr(not(target_os = "breenix"), doc = "does on macOS and Windows.")]
 ///
 /// Note that the returned iterator will not check if the arguments to the
 /// process are valid Unicode. If you want to panic on invalid UTF-8,

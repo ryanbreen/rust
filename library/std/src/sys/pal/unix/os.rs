@@ -700,26 +700,34 @@ pub fn getppid() -> u32 {
     unsafe { libc::getppid() as u32 }
 }
 
+// Breenix: configured out as one macro call, not item by item. rustc records the names of
+// configured-out items in std's metadata, and Breenix's SDK ships std naming no other C library.
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
-pub fn glibc_version() -> Option<(usize, usize)> {
-    unsafe extern "C" {
-        fn gnu_get_libc_version() -> *const libc::c_char;
-    }
-    let version_cstr = unsafe { CStr::from_ptr(gnu_get_libc_version()) };
-    if let Ok(version_str) = version_cstr.to_str() {
-        parse_glibc_version(version_str)
-    } else {
-        None
-    }
+macro_rules! gnu_items {
+    ($($item:item)*) => { $($item)* };
 }
 
-// Returns Some((major, minor)) if the string is a valid "x.y" version,
-// ignoring any extra dot-separated parts. Otherwise return None.
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
-fn parse_glibc_version(version: &str) -> Option<(usize, usize)> {
-    let mut parsed_ints = version.split('.').map(str::parse::<usize>).fuse();
-    match (parsed_ints.next(), parsed_ints.next()) {
-        (Some(Ok(major)), Some(Ok(minor))) => Some((major, minor)),
-        _ => None,
+gnu_items! {
+    pub fn glibc_version() -> Option<(usize, usize)> {
+        unsafe extern "C" {
+            fn gnu_get_libc_version() -> *const libc::c_char;
+        }
+        let version_cstr = unsafe { CStr::from_ptr(gnu_get_libc_version()) };
+        if let Ok(version_str) = version_cstr.to_str() {
+            parse_glibc_version(version_str)
+        } else {
+            None
+        }
+    }
+
+    // Returns Some((major, minor)) if the string is a valid "x.y" version,
+    // ignoring any extra dot-separated parts. Otherwise return None.
+    fn parse_glibc_version(version: &str) -> Option<(usize, usize)> {
+        let mut parsed_ints = version.split('.').map(str::parse::<usize>).fuse();
+        match (parsed_ints.next(), parsed_ints.next()) {
+            (Some(Ok(major)), Some(Ok(minor))) => Some((major, minor)),
+            _ => None,
+        }
     }
 }
