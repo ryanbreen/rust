@@ -35,7 +35,10 @@ cfg_if::cfg_if! {
     } else if #[cfg(target_os = "hermit")] {
         mod hermit;
         pub use hermit::fill_bytes;
-    } else if #[cfg(any(target_os = "horizon", target_os = "cygwin", target_os = "breenix"))] {
+    } else if #[cfg(target_os = "breenix")] {
+        mod breenix;
+        pub use breenix::{fill_bytes, hashmap_random_keys};
+    } else if #[cfg(any(target_os = "horizon", target_os = "cygwin"))] {
         // FIXME(horizon): add arc4random_buf to shim-3ds
         mod getrandom;
         pub use getrandom::fill_bytes;
@@ -89,6 +92,7 @@ cfg_if::cfg_if! {
 #[cfg(not(any(
     target_os = "linux",
     target_os = "android",
+    target_os = "breenix",
     all(target_family = "wasm", target_os = "unknown"),
     target_os = "xous",
 )))]
