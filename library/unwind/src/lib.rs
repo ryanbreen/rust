@@ -184,3 +184,7 @@ unsafe extern "C" {}
 #[link(name = "unwind", kind = "static", modifiers = "-bundle", cfg(target_feature = "crt-static"))]
 #[link(name = "unwind", cfg(not(target_feature = "crt-static")))]
 unsafe extern "C" {}
+
+#[cfg(all(target_os = "breenix", panic = "unwind"))]
+#[link(name = "bunwind", kind = "static", modifiers = "-bundle")]
+unsafe extern "C" {}
